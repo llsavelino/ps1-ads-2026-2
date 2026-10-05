@@ -7,9 +7,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import br.edu.fatecfranca.api.entities.Cars;
 import br.edu.fatecfranca.api.entities.Customers;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CarDto {
@@ -18,33 +22,40 @@ public class CarDto {
     private Long id;
 
     @NotBlank
+    @Pattern(regexp = ".*\\S.*")
     @Size(max = 100)
     private String brand;
 
     @NotBlank
+    @Pattern(regexp = ".*\\S.*")
     @Size(max = 100)
     private String model;
 
     @NotBlank
+    @Pattern(regexp = ".*\\S.*")
     @Size(max = 50)
     private String color;
 
     @NotNull
+    @Min(1886)
+    @Max(2100)
     private Integer yearManufacture;
 
     @NotNull
     private Boolean imported;
 
     @NotBlank
-    @Size(max = 20)
+    @Pattern(regexp = "[A-Za-z0-9-]{5,10}")
     private String plates;
 
     @PastOrPresent
     private LocalDate sellingDate;
 
     @DecimalMin(value = "0.00", inclusive = true)
+    @Digits(integer = 10, fraction = 2)
     private BigDecimal sellingPrice;
 
+    @Min(1)
     private Long customerId;
 
     public CarDto() {}

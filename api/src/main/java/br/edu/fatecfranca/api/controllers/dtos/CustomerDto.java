@@ -16,31 +16,36 @@ public class CustomerDto{
 	private Long id;
 
 	@NotBlank
+	@Pattern(regexp = ".*\\S.*")
 	@Size(max = 100)
 	private String name;
 
 	@NotBlank
-	@Size(min = 5, max = 20)
+	@Pattern(regexp = "[A-Za-z0-9./-]{5,20}")
 	private String identDocument;
 
 	@PastOrPresent
 	private LocalDate birthDate;
 
 	@NotBlank
+	@Pattern(regexp = ".*\\S.*")
 	@Size(max = 200)
 	private String streetName;
 
 	@NotBlank
+	@Pattern(regexp = ".*\\S.*")
 	@Size(max = 20)
 	private String houseNumber;
 
 	private String complements;
 
 	@NotBlank
+	@Pattern(regexp = ".*\\S.*")
 	@Size(max = 100)
 	private String district;
 
 	@NotBlank
+	@Pattern(regexp = ".*\\S.*")
 	@Size(max = 100)
 	private String municipality;
 
@@ -49,11 +54,13 @@ public class CustomerDto{
 	private String state;
 
 	@NotBlank
-	@Pattern(regexp = "^[0-9+()\\-\\s]{8,20}$", message = "invalid phone")
+	@Pattern(regexp = "(?=.*\\S)[0-9+()\\-\\s]{8,20}", message = "invalid phone")
 	private String phone;
 
 	@NotBlank
+	@Pattern(regexp = ".*\\S.*")
 	@Email
+	@Size(max = 254)
 	private String email;
 
 	public CustomerDto() {}

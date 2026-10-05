@@ -1,12 +1,9 @@
 package br.edu.fatecfranca.api.controllers;
 
-import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,13 +13,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 import br.edu.fatecfranca.api.controllers.dtos.CustomerDto;
+import br.edu.fatecfranca.api.controllers.reqs.CustomerReq;
+import br.edu.fatecfranca.api.controllers.reqs.ValidationGroups;
 import br.edu.fatecfranca.api.entities.Customers;
 import br.edu.fatecfranca.api.services.CustomersService;
 import br.edu.fatecfranca.api.services.policy.contracts.Contract;
 import br.edu.fatecfranca.api.services.policy.contracts.PageMeta;
-import jakarta.validation.Valid;
 
 @RestController @RequestMapping("/customers")
 public class CustomerController {
@@ -34,52 +33,41 @@ public class CustomerController {
     private boolean exists(Long id) { return this.service.existsById(id); }
 
     @PostMapping
-    public ResponseEntity<Contract<Long>> create(@Valid @RequestBody CustomerDto customerDto, BindingResult br) {
-        if (br.hasErrors()) {
-            String msg = br.getAllErrors()
-            .stream()
-            .map(e -> e.getDefaultMessage() == null ? e.toString() : e.getDefaultMessage())
-            .collect(Collectors.joining("; "));
-            Contract<Long> body = Contract.badRequest("BAD_REQUEST", msg);
-            return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
-        }
-        Contract<Long> body = Contract.created(this.service.create(customerDto.toEntity()).getId());
+    public ResponseEntity<Contract<Long>> create(
+            @Validated(ValidationGroups.Required.class) @RequestBody CustomerReq customerReq
+    ) {
+        Contract<Long> body = Contract.created(this.service.create(customerReq.toEntity()).getId());
         return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Contract<Customers>> update(@PathVariable Long id, @Valid @RequestBody CustomerDto customerDto, BindingResult br) {
+    public ResponseEntity<Contract<CustomerDto>> update(
+            @PathVariable Long id,
+            @Validated(ValidationGroups.Required.class) @RequestBody CustomerReq customerReq
+    ) {
         if (!exists(id)) {
-            Contract<Customers> body = Contract.notFound("CUSTOMER_NOT_FOUND", "Customer not found");
+            Contract<CustomerDto> body = Contract.notFound("CUSTOMER_NOT_FOUND", "Customer not found");
             return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
         }
-        if (br.hasErrors()) {
-            String msg = br.getAllErrors()
-            .stream()
-            .map(e -> e.getDefaultMessage() == null ? e.toString() : e.getDefaultMessage())
-            .collect(Collectors.joining("; "));
-            Contract<Customers> body = Contract.badRequest("BAD_REQUEST", msg);
-            return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
-        }
-        Customers customer = customerDto.toEntity();
+        Customers customer = customerReq.toEntity();
         customer.setId(id);
-        Contract<Customers> body = Contract.ok(this.service.update(customer));
+        Contract<CustomerDto> body = Contract.ok(new CustomerDto(this.service.update(customer)));
         return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
     }
 
     @GetMapping
-    public ResponseEntity<Contract<Iterable<Customers>>> getAll(Pageable pageable) {
-        Page<Customers> page = this.service.findAll(pageable);
-        Contract<Iterable<Customers>> body = Contract.okPage(
+    public ResponseEntity<Contract<Iterable<CustomerDto>>> getAll(Pageable pageable) {
+        Page<CustomerDto> page = this.service.findAll(pageable).map(CustomerDto::new);
+        Contract<Iterable<CustomerDto>> body = Contract.okPage(
             page.getContent(), PageMeta.of(page.getNumber(), page.getSize(), page.getTotalElements(), page.getTotalPages())
         );
         return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Contract<Customers>> find(@PathVariable Long id) {
-        Contract<Customers> body = this.service.findById(id)
-                .map(Contract::ok)
+    public ResponseEntity<Contract<CustomerDto>> find(@PathVariable Long id) {
+        Contract<CustomerDto> body = this.service.findById(id)
+                .map(customer -> Contract.ok(new CustomerDto(customer)))
                 .orElse(Contract.notFound("CUSTOMER_NOT_FOUND", "Customer not found"));
         return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
     }
@@ -91,34 +79,36 @@ public class CustomerController {
             return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
         }
         this.service.deleteById(id);
-        Contract<Void> body = Contract.noContent();
-        return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
+        return ResponseEntity.status(HttpStatus.valueOf(Contract.noContent().getHttpStatus())).body(Contract.noContent());
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Contract<Customers>> patch(@PathVariable Long id, @RequestBody CustomerDto customerDto) {
+    public ResponseEntity<Contract<CustomerDto>> patch(
+            @PathVariable Long id,
+            @Validated @RequestBody CustomerReq customerReq
+    ) {
         var opt = this.service.findById(id);
         if (opt.isEmpty()) {
-            Contract<Customers> body = Contract.notFound("CUSTOMER_NOT_FOUND", "Customer not found");
+            Contract<CustomerDto> body = Contract.notFound("CUSTOMER_NOT_FOUND", "Customer not found");
             return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
         }
-        if (!customerDto.isValidForUpdate()) {
-            Contract<Customers> body = Contract.badRequest("BAD_REQUEST", "no fields provided for update");
+        if (!customerReq.hasAnyField()) {
+            Contract<CustomerDto> body = Contract.badRequest("BAD_REQUEST", "no fields provided for update");
             return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
         }
         Customers c = opt.get();
-        if (customerDto.getName() != null && !customerDto.getName().isBlank()) c.setName(customerDto.getName());
-        if (customerDto.getIdentDocument() != null && !customerDto.getIdentDocument().isBlank()) c.setIdentDocument(customerDto.getIdentDocument());
-        if (customerDto.getBirthDate() != null) c.setBirthDate(customerDto.getBirthDate());
-        if (customerDto.getStreetName() != null && !customerDto.getStreetName().isBlank()) c.setStreetName(customerDto.getStreetName());
-        if (customerDto.getHouseNumber() != null && !customerDto.getHouseNumber().isBlank()) c.setHouseNumber(customerDto.getHouseNumber());
-        if (customerDto.getComplements() != null) c.setComplements(customerDto.getComplements());
-        if (customerDto.getDistrict() != null && !customerDto.getDistrict().isBlank()) c.setDistrict(customerDto.getDistrict());
-        if (customerDto.getMunicipality() != null && !customerDto.getMunicipality().isBlank()) c.setMunicipality(customerDto.getMunicipality());
-        if (customerDto.getState() != null && !customerDto.getState().isBlank()) c.setState(customerDto.getState());
-        if (customerDto.getPhone() != null && !customerDto.getPhone().isBlank()) c.setPhone(customerDto.getPhone());
-        if (customerDto.getEmail() != null && !customerDto.getEmail().isBlank()) c.setEmail(customerDto.getEmail());
-        Contract<Customers> body = Contract.ok(this.service.update(c));
+        if (customerReq.getName() != null) c.setName(customerReq.getName());
+        if (customerReq.getIdentDocument() != null) c.setIdentDocument(customerReq.getIdentDocument());
+        if (customerReq.getBirthDate() != null) c.setBirthDate(customerReq.getBirthDate());
+        if (customerReq.getStreetName() != null) c.setStreetName(customerReq.getStreetName());
+        if (customerReq.getHouseNumber() != null) c.setHouseNumber(customerReq.getHouseNumber());
+        if (customerReq.getComplements() != null) c.setComplements(customerReq.getComplements());
+        if (customerReq.getDistrict() != null) c.setDistrict(customerReq.getDistrict());
+        if (customerReq.getMunicipality() != null) c.setMunicipality(customerReq.getMunicipality());
+        if (customerReq.getState() != null) c.setState(customerReq.getState());
+        if (customerReq.getPhone() != null) c.setPhone(customerReq.getPhone());
+        if (customerReq.getEmail() != null) c.setEmail(customerReq.getEmail());
+        Contract<CustomerDto> body = Contract.ok(new CustomerDto(this.service.update(c)));
         return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
     }
 }

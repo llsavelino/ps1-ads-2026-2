@@ -1,12 +1,9 @@
 package br.edu.fatecfranca.api.controllers;
 
-import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,13 +13,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 import br.edu.fatecfranca.api.controllers.dtos.UserDto;
+import br.edu.fatecfranca.api.controllers.reqs.UserReq;
+import br.edu.fatecfranca.api.controllers.reqs.ValidationGroups;
 import br.edu.fatecfranca.api.entities.Users;
 import br.edu.fatecfranca.api.services.UsersService;
 import br.edu.fatecfranca.api.services.policy.contracts.Contract;
 import br.edu.fatecfranca.api.services.policy.contracts.PageMeta;
-import jakarta.validation.Valid;
 
 @RestController @RequestMapping("/users")
 public class UserController {
@@ -34,41 +33,27 @@ public class UserController {
 	private boolean exists(Long id) { return this.service.existsById(id); }
 
 	@PostMapping
-	public ResponseEntity<Contract<Long>> create(@Valid @RequestBody UserDto userDto, BindingResult br) {
-		if (br.hasErrors()) {
-			String msg = br.getAllErrors()
-				.stream()
-				.map(error -> error.getDefaultMessage() == null ? error.toString() : error.getDefaultMessage())
-				.collect(Collectors.joining("; "));
-			Contract<Long> body = Contract.badRequest("BAD_REQUEST", msg);
-			return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
-		}
-		Contract<Long> body = Contract.created(this.service.create(userDto.toEntity()).getId());
+	public ResponseEntity<Contract<Long>> create(
+			@Validated(ValidationGroups.Required.class) @RequestBody UserReq userReq
+	) {
+		Contract<Long> body = Contract.created(this.service.create(userReq.toEntity()).getId());
 		return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
 	}
 
 	@PutMapping("/{id}")
 	public ResponseEntity<Contract<UserDto>> update(
 			@PathVariable Long id,
-			@Valid @RequestBody UserDto userDto,
-			BindingResult br
+			@Validated(ValidationGroups.Required.class) @RequestBody UserReq userReq
 	) {
-		if (!exists(id)) {
+		var existingUser = this.service.findById(id);
+		if (existingUser.isEmpty()) {
 			Contract<UserDto> body = Contract.notFound("USER_NOT_FOUND", "User not found");
 			return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
 		}
-		if (br.hasErrors()) {
-			String msg = br.getAllErrors()
-				.stream()
-				.map(error -> error.getDefaultMessage() == null ? error.toString() : error.getDefaultMessage())
-				.collect(Collectors.joining("; "));
-			Contract<UserDto> body = Contract.badRequest("BAD_REQUEST", msg);
-			return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
-		}
 
-		Users user = userDto.toEntity();
+		Users user = userReq.toEntity();
 		user.setId(id);
-		this.service.findById(id).ifPresent(existing -> user.setIsAdmin(existing.getIsAdmin()));
+		user.setIsAdmin(existingUser.get().getIsAdmin());
 		Contract<UserDto> body = Contract.ok(new UserDto(this.service.update(user)));
 		return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
 	}
@@ -97,27 +82,29 @@ public class UserController {
 			return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
 		}
 		this.service.deleteById(id);
-		Contract<Void> body = Contract.noContent();
-		return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
+		return ResponseEntity.status(HttpStatus.valueOf(Contract.noContent().getHttpStatus())).body(Contract.noContent());
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<Contract<UserDto>> patch(@PathVariable Long id, @RequestBody UserDto userDto) {
+	public ResponseEntity<Contract<UserDto>> patch(
+			@PathVariable Long id,
+			@Validated @RequestBody UserReq userReq
+	) {
 		var optionalUser = this.service.findById(id);
 		if (optionalUser.isEmpty()) {
 			Contract<UserDto> body = Contract.notFound("USER_NOT_FOUND", "User not found");
 			return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
 		}
-		if (!userDto.isValidForUpdate()) {
+		if (!userReq.hasAnyField()) {
 			Contract<UserDto> body = Contract.badRequest("BAD_REQUEST", "no fields provided for update");
 			return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
 		}
 
 		Users user = optionalUser.get();
-		if (userDto.getFullname() != null && !userDto.getFullname().isBlank()) user.setFullname(userDto.getFullname());
-		if (userDto.getUsername() != null && !userDto.getUsername().isBlank()) user.setUsername(userDto.getUsername());
-		if (userDto.getEmail() != null && !userDto.getEmail().isBlank()) user.setEmail(userDto.getEmail());
-		if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) user.setPassword(userDto.getPassword());
+		if (userReq.getFullname() != null) user.setFullname(userReq.getFullname());
+		if (userReq.getUsername() != null) user.setUsername(userReq.getUsername());
+		if (userReq.getEmail() != null) user.setEmail(userReq.getEmail());
+		if (userReq.getPassword() != null) user.setPassword(userReq.getPassword());
 
 		Contract<UserDto> body = Contract.ok(new UserDto(this.service.update(user)));
 		return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
