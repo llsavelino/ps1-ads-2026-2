@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 
-import br.edu.fatecfranca.api.controllers.dtos.CarDto;
-import br.edu.fatecfranca.api.controllers.reqs.CarReq;
-import br.edu.fatecfranca.api.controllers.reqs.ValidationGroups;
+import br.edu.fatecfranca.api.controllers.pipes.dtos.CarDto;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.CarReq;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.ValidationGroups;
 import br.edu.fatecfranca.api.entities.Cars;
 import br.edu.fatecfranca.api.entities.Customers;
 import br.edu.fatecfranca.api.services.CarsService;
+import br.edu.fatecfranca.api.services.policy.common.http.pkg.metadata.PageMeta;
 import br.edu.fatecfranca.api.services.policy.contracts.Contract;
-import br.edu.fatecfranca.api.services.policy.contracts.PageMeta;
 
 @RestController @RequestMapping("/cars")
 public class CarController {

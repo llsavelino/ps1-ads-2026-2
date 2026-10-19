@@ -1,4 +1,4 @@
-package br.edu.fatecfranca.api.services.policy.exception;
+package br.edu.fatecfranca.api.services.policy.common.http.pkg.interceptors.exception.filters;
 
 public class BusinessException extends RuntimeException {
 

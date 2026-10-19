@@ -20,7 +20,7 @@
       "settings": {
         "java.configuration.updateBuildConfiguration": "automatic",
         "spring.initializr.defaultLanguage": "Java",
-        "spring.initializr.defaultJavaVersion": "25",
+        "spring.initializr.defaultJavaVersion": "",
         "spring.initializr.defaultPackaging": "JAR",
         "spring.initializr.defaultOpenProjectMethod": "Open"
       }

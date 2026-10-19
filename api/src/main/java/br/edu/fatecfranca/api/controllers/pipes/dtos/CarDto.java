@@ -1,4 +1,4 @@
-package br.edu.fatecfranca.api.controllers.dtos;
+package br.edu.fatecfranca.api.controllers.pipes.dtos;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,41 +21,41 @@ public class CarDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
-    @NotBlank
-    @Pattern(regexp = ".*\\S.*")
-    @Size(max = 100)
+    @NotBlank(message = "brand must not be blank")
+    @Pattern(regexp = ".*\\S.*", message = "brand must not contain only whitespace")
+    @Size(max = 100, message = "brand must be at most 100 characters")
     private String brand;
 
-    @NotBlank
-    @Pattern(regexp = ".*\\S.*")
-    @Size(max = 100)
+    @NotBlank(message = "model must not be blank")
+    @Pattern(regexp = ".*\\S.*", message = "model must not contain only whitespace")
+    @Size(max = 100, message = "model must be at most 100 characters")
     private String model;
 
-    @NotBlank
-    @Pattern(regexp = ".*\\S.*")
-    @Size(max = 50)
+    @NotBlank(message = "color must not be blank")
+    @Pattern(regexp = ".*\\S.*", message = "color must not contain only whitespace")
+    @Size(max = 50, message = "color must be at most 50 characters")
     private String color;
 
-    @NotNull
-    @Min(1886)
-    @Max(2100)
+    @NotNull(message = "yearManufacture must not be null")
+    @Min(value = 1886, message = "yearManufacture must be at least 1886")
+    @Max(value = 2100, message = "yearManufacture must be at most 2100")
     private Integer yearManufacture;
 
-    @NotNull
+    @NotNull(message = "imported must not be null")
     private Boolean imported;
 
-    @NotBlank
-    @Pattern(regexp = "[A-Za-z0-9-]{5,10}")
+    @NotBlank(message = "plates must not be blank")
+    @Pattern(regexp = "[A-Za-z0-9-]{5,10}", message = "plates must be a valid plate identifier")
     private String plates;
 
-    @PastOrPresent
+    @PastOrPresent(message = "sellingDate must be in the past or present")
     private LocalDate sellingDate;
 
-    @DecimalMin(value = "0.00", inclusive = true)
-    @Digits(integer = 10, fraction = 2)
+    @DecimalMin(value = "0.00", inclusive = true, message = "sellingPrice must be at least 0.00")
+    @Digits(integer = 10, fraction = 2, message = "sellingPrice must have at most 10 integer and 2 fractional digits")
     private BigDecimal sellingPrice;
 
-    @Min(1)
+    @Min(value = 1, message = "customerId must be at least 1")
     private Long customerId;
 
     public CarDto() {}

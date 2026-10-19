@@ -1,4 +1,4 @@
-package br.edu.fatecfranca.api.controllers.dtos;
+package br.edu.fatecfranca.api.controllers.pipes.dtos;
 
 import java.time.LocalDate;
 
@@ -15,52 +15,52 @@ public class CustomerDto{
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private Long id;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Size(max = 100)
+	@NotBlank(message = "name must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "name must not contain only whitespace")
+	@Size(max = 100, message = "name must be at most 100 characters")
 	private String name;
 
-	@NotBlank
-	@Pattern(regexp = "[A-Za-z0-9./-]{5,20}")
+	@NotBlank(message = "identDocument must not be blank")
+	@Pattern(regexp = "[A-Za-z0-9./-]{5,20}", message = "identDocument must contain 5 to 20 valid characters")
 	private String identDocument;
 
-	@PastOrPresent
+	@PastOrPresent(message = "birthDate must be in the past or present")
 	private LocalDate birthDate;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Size(max = 200)
+	@NotBlank(message = "streetName must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "streetName must not contain only whitespace")
+	@Size(max = 200, message = "streetName must be at most 200 characters")
 	private String streetName;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Size(max = 20)
+	@NotBlank(message = "houseNumber must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "houseNumber must not contain only whitespace")
+	@Size(max = 20, message = "houseNumber must be at most 20 characters")
 	private String houseNumber;
 
 	private String complements;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Size(max = 100)
+	@NotBlank(message = "district must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "district must not contain only whitespace")
+	@Size(max = 100, message = "district must be at most 100 characters")
 	private String district;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Size(max = 100)
+	@NotBlank(message = "municipality must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "municipality must not contain only whitespace")
+	@Size(max = 100, message = "municipality must be at most 100 characters")
 	private String municipality;
 
-	@NotBlank
+	@NotBlank(message = "state must not be blank")
 	@Pattern(regexp = "^[A-Z]{2}$", message = "state must be two uppercase letters")
 	private String state;
 
-	@NotBlank
+	@NotBlank(message = "phone must not be blank")
 	@Pattern(regexp = "(?=.*\\S)[0-9+()\\-\\s]{8,20}", message = "invalid phone")
 	private String phone;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Email
-	@Size(max = 254)
+	@NotBlank(message = "email must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "email must not contain only whitespace")
+	@Email(message = "email must be valid")
+	@Size(max = 254, message = "email must be at most 254 characters")
 	private String email;
 
 	public CustomerDto() {}

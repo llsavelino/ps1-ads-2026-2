@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 
-import br.edu.fatecfranca.api.controllers.dtos.CustomerDto;
-import br.edu.fatecfranca.api.controllers.reqs.CustomerReq;
-import br.edu.fatecfranca.api.controllers.reqs.ValidationGroups;
+import br.edu.fatecfranca.api.controllers.pipes.dtos.CustomerDto;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.CustomerReq;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.ValidationGroups;
 import br.edu.fatecfranca.api.entities.Customers;
 import br.edu.fatecfranca.api.services.CustomersService;
+import br.edu.fatecfranca.api.services.policy.common.http.pkg.metadata.PageMeta;
 import br.edu.fatecfranca.api.services.policy.contracts.Contract;
-import br.edu.fatecfranca.api.services.policy.contracts.PageMeta;
 
 @RestController @RequestMapping("/customers")
 public class CustomerController {

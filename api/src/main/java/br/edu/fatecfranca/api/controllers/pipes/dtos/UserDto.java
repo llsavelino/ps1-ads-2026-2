@@ -1,4 +1,4 @@
-package br.edu.fatecfranca.api.controllers.dtos;
+package br.edu.fatecfranca.api.controllers.pipes.dtos;
 
 import br.edu.fatecfranca.api.entities.Users;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,22 +12,22 @@ public class UserDto {
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	private Long id;
 
-	@NotBlank
-	@Pattern(regexp = ".*\\S.*")
-	@Size(max = 100)
+	@NotBlank(message = "fullname must not be blank")
+	@Pattern(regexp = ".*\\S.*", message = "fullname must not contain only whitespace")
+	@Size(max = 100, message = "fullname must be at most 100 characters")
 	private String fullname;
 
-	@NotBlank
-	@Pattern(regexp = "[A-Za-z0-9._-]{3,100}")
+	@NotBlank(message = "username must not be blank")
+	@Pattern(regexp = "[A-Za-z0-9._-]{3,100}", message = "username must contain 3 to 100 valid characters")
 	private String username;
 
-	@NotBlank
-	@Email
-	@Size(max = 254)
+	@NotBlank(message = "email must not be blank")
+	@Email(message = "email must be valid")
+	@Size(max = 254, message = "email must be at most 254 characters")
 	private String email;
 
-	@NotBlank
-	@Size(min = 8, max = 72)
+	@NotBlank(message = "password must not be blank")
+	@Size(min = 8, max = 72, message = "password must contain 8 to 72 characters")
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String password;
 

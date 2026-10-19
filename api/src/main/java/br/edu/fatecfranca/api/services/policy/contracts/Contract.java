@@ -2,6 +2,11 @@ package br.edu.fatecfranca.api.services.policy.contracts;
 
 import java.time.Instant;
 
+import br.edu.fatecfranca.api.services.policy.common.http.pkg.errors.ApiError;
+import br.edu.fatecfranca.api.services.policy.common.http.pkg.interceptors.TraceId;
+import br.edu.fatecfranca.api.services.policy.common.http.pkg.metadata.Meta;
+import br.edu.fatecfranca.api.services.policy.common.http.pkg.metadata.PageMeta;
+
 /**
  * Contrato padrão de resposta da API.
  *

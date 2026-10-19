@@ -1,4 +1,4 @@
-package br.edu.fatecfranca.api.controllers.reqs;
+package br.edu.fatecfranca.api.controllers.pipes.reqs;
 
 import br.edu.fatecfranca.api.entities.Users;
 import jakarta.validation.constraints.Email;

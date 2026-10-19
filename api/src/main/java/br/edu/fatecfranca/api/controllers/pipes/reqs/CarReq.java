@@ -1,4 +1,4 @@
-package br.edu.fatecfranca.api.controllers.reqs;
+package br.edu.fatecfranca.api.controllers.pipes.reqs;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
