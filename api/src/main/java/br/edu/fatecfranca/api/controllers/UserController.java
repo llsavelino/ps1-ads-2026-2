@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 
 import br.edu.fatecfranca.api.controllers.pipes.dtos.UserDto;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.LoginRequest;
 import br.edu.fatecfranca.api.controllers.pipes.reqs.UserReq;
 import br.edu.fatecfranca.api.controllers.pipes.reqs.ValidationGroups;
 import br.edu.fatecfranca.api.entities.Users;
@@ -38,6 +39,17 @@ public class UserController {
 	) {
 		Contract<Long> body = Contract.created(this.service.create(userReq.toEntity()).getId());
 		return ResponseEntity.status(HttpStatus.valueOf(body.getHttpStatus())).body(body);
+	}
+
+	@PostMapping("/login")
+	public ResponseEntity<Contract<String>> login(
+			@Validated @RequestBody LoginRequest loginRequest
+	) {
+		return this.service.authenticate(loginRequest.usernameOrEmail(), loginRequest.password())
+			.map(user -> ResponseEntity.status(HttpStatus.OK)
+				.body(Contract.ok("LOGIN_SUCCESSFUL")))
+			.orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Contract.unauthorized("INVALID_CREDENTIALS", "invalid username/email or password")));
 	}
 
 	@PutMapping("/{id}")

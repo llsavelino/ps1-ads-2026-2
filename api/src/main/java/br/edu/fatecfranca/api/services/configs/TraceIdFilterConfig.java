@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 @Component
-public class TraceIdFilter extends OncePerRequestFilter {
+public class TraceIdFilterConfig extends OncePerRequestFilter {
 
     private static final String TRACE_ID = "traceId";
     private static final String HEADER = "X-Trace-Id";
