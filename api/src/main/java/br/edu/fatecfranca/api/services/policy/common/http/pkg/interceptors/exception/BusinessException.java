@@ -1,10 +1,10 @@
-package br.edu.fatecfranca.api.services.policy.common.http.pkg.interceptors.exception.filters;
+package br.edu.fatecfranca.api.services.policy.common.http.pkg.interceptors.exception;
 
-public class ResourceNotFoundException extends RuntimeException {
+public class BusinessException extends RuntimeException {
 
     private final String code;
 
-    public ResourceNotFoundException(
+    public BusinessException(
             String code,
             String message
     ) {

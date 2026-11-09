@@ -16,20 +16,35 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.annotation.Validated;
 
 import br.edu.fatecfranca.api.controllers.pipes.dtos.UserDto;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.ForgotPasswordRequest;
 import br.edu.fatecfranca.api.controllers.pipes.reqs.LoginRequest;
+import br.edu.fatecfranca.api.controllers.pipes.reqs.ResetPasswordRequest;
 import br.edu.fatecfranca.api.controllers.pipes.reqs.UserReq;
 import br.edu.fatecfranca.api.controllers.pipes.reqs.ValidationGroups;
+import br.edu.fatecfranca.api.controllers.presentation.responses.LoginResponse;
 import br.edu.fatecfranca.api.entities.Users;
 import br.edu.fatecfranca.api.services.UsersService;
+import br.edu.fatecfranca.api.services.PasswordResetService;
 import br.edu.fatecfranca.api.services.policy.common.http.pkg.metadata.PageMeta;
 import br.edu.fatecfranca.api.services.policy.contracts.Contract;
+import br.edu.fatecfranca.api.services.policy.secure.jwt.TokenJwt;
 
 @RestController @RequestMapping("/users")
 public class UserController {
 
 	private final UsersService service;
+	private final TokenJwt tokenService;
+	private final PasswordResetService passwordResetService;
 
-	public UserController(UsersService service) { this.service = service; }
+	public UserController(
+			UsersService service,
+			TokenJwt tokenService,
+			PasswordResetService passwordResetService
+	) {
+		this.service = service;
+		this.tokenService = tokenService;
+		this.passwordResetService = passwordResetService;
+	}
 
 	private boolean exists(Long id) { return this.service.existsById(id); }
 
@@ -42,14 +57,45 @@ public class UserController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<Contract<String>> login(
+	public ResponseEntity<Contract<LoginResponse>> login(
 			@Validated @RequestBody LoginRequest loginRequest
 	) {
-		return this.service.authenticate(loginRequest.usernameOrEmail(), loginRequest.password())
-			.map(user -> ResponseEntity.status(HttpStatus.OK)
-				.body(Contract.ok("LOGIN_SUCCESSFUL")))
-			.orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-				.body(Contract.unauthorized("INVALID_CREDENTIALS", "invalid username/email or password")));
+		var user = this.service.authenticate(loginRequest.usernameOrEmail(), loginRequest.password());
+		if (user.isEmpty()) {
+			Contract<LoginResponse> body = Contract.unauthorized(
+				"INVALID_CREDENTIALS", "invalid username/email or password"
+			);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+		}
+
+		Contract<LoginResponse> body = Contract.ok(
+			LoginResponse.from(this.tokenService.generate(user.get()))
+		);
+		return ResponseEntity.status(HttpStatus.OK).body(body);
+	}
+
+	@PostMapping("/forgot-password")
+	public ResponseEntity<Contract<Void>> forgotPassword(
+			@Validated @RequestBody ForgotPasswordRequest request
+	) {
+		this.passwordResetService.requestReset(request.email());
+		Contract<Void> body = Contract.ok(null);
+		return ResponseEntity.status(HttpStatus.OK).body(body);
+	}
+
+	@PostMapping("/reset-password")
+	public ResponseEntity<Contract<Void>> resetPassword(
+			@Validated @RequestBody ResetPasswordRequest request
+	) {
+		if (!this.passwordResetService.resetPassword(request.token(), request.newPassword())) {
+			Contract<Void> body = Contract.badRequest(
+				"INVALID_OR_EXPIRED_RESET_TOKEN", "The password reset token is invalid or expired"
+			);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+		}
+
+		Contract<Void> body = Contract.ok(null);
+		return ResponseEntity.status(HttpStatus.OK).body(body);
 	}
 
 	@PutMapping("/{id}")
