@@ -23,7 +23,7 @@ import br.edu.fatecfranca.api.controllers.pipes.reqs.ResetPasswordRequest;
 import br.edu.fatecfranca.api.controllers.presentation.responses.LoginResponse;
 import br.edu.fatecfranca.api.entities.Users;
 import br.edu.fatecfranca.api.services.PasswordResetService;
-import br.edu.fatecfranca.api.services.TokenJwtService;
+import br.edu.fatecfranca.api.services.policy.secure.jwt.TokenJwt;
 import br.edu.fatecfranca.api.services.UsersService;
 import br.edu.fatecfranca.api.services.policy.contracts.Contract;
 
@@ -34,7 +34,7 @@ class UserControllerAuthTest {
     private UsersService usersService;
 
     @Mock
-    private TokenJwtService tokenService;
+    private TokenJwt tokenService;
 
     @Mock
     private PasswordResetService passwordResetService;
